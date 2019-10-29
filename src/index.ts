@@ -205,7 +205,10 @@ class TypeScriptPlugin {
 
       fs.copySync(
         path.resolve('node_modules'),
-        path.resolve(path.join(BUILD_FOLDER, 'node_modules'))
+        path.resolve(path.join(BUILD_FOLDER, 'node_modules')),
+        {
+          dereference: true,
+        }
       )
     } else {
       if (!fs.existsSync(outModulesPath)) {
