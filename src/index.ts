@@ -118,7 +118,7 @@ export class TypeScriptPlugin {
     this.serverless.cli.log(`Watch function ${this.options.function}...`)
 
     this.isWatching = true
-    watchFiles(this.rootFileNames, this.originalServicePath, async () => {
+    watchFiles(this.rootFileNames, this.originalServicePath, this.serverless, async () => {
       await this.serverless.pluginManager.spawn('invoke:local')
     })
   }
@@ -131,7 +131,7 @@ export class TypeScriptPlugin {
     this.serverless.cli.log('Watching typescript files...')
 
     this.isWatching = true
-    watchFiles(this.rootFileNames, this.originalServicePath, this.compileTs.bind(this))
+    watchFiles(this.rootFileNames, this.originalServicePath, this.serverless, this.compileTs.bind(this))
   }
 
   compileTs(): string[] {
@@ -147,6 +147,7 @@ export class TypeScriptPlugin {
 
     const tsconfig = typescript.getTypescriptConfig(
       this.originalServicePath,
+      this.serverless,
       this.isWatching ? null : this.serverless.cli
     )
 
