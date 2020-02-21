@@ -26,6 +26,9 @@
     "typescript",
     "aws lambda"
   ],
+  "engines": {
+    "node": ">=10.0.0"
+  },
   "devDependencies": {
     "@types/fs-extra": "5.0.5",
     "@types/jest": "24.0.12",
