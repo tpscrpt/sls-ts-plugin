@@ -9,7 +9,7 @@
     "README.md"
   ],
   "scripts": {
-    "prepublish": "npm run build",
+    "prepublishOnly": "npm run build",
     "precommit": "npm run test",
     "build": "rimraf dist && tsc",
     "pretest": "npm run lint",
