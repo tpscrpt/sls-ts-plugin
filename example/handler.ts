@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as _ from 'lodash'
 
 // modern module syntax
-export async function hello(event, context, callback) {
+const hello = async (event, context, callback): Promise<any> => {
 
   // dependencies work as expected
   console.log(_.VERSION)
@@ -15,7 +16,9 @@ export async function hello(event, context, callback) {
       message: 'Go Serverless v1.0! Your function executed successfully!',
       input: event,
     }),
-  };
+  }
 
-  callback(null, response);
+  callback(null, response)
 }
+
+export default hello

@@ -1,7 +1,7 @@
 import * as typescript from './typescript'
 import { watchFile, unwatchFile, Stats} from 'fs'
 
-export function watchFiles(rootFileNames: string[], originalServicePath: string, cb: () => void) {
+const watchFiles = (rootFileNames: string[], originalServicePath: string, cb: () => Promise<void>): void => {
   const tsConfig = typescript.getTypescriptConfig(originalServicePath)
   let watchedFiles = typescript.getSourceFiles(rootFileNames, tsConfig)
 
@@ -9,7 +9,7 @@ export function watchFiles(rootFileNames: string[], originalServicePath: string,
     watchFile(fileName, { persistent: true, interval: 250 }, watchCallback)
   })
 
-  function watchCallback(curr: Stats, prev: Stats) {
+  const watchCallback = (curr: Stats, prev: Stats): void => {
     // Check timestamp
     if (+curr.mtime <= +prev.mtime) {
       return
@@ -20,13 +20,13 @@ export function watchFiles(rootFileNames: string[], originalServicePath: string,
     // use can reference not watched yet file or remove reference to already watched
     const newWatchFiles =  typescript.getSourceFiles(rootFileNames, tsConfig)
     watchedFiles.forEach(fileName => {
-      if (newWatchFiles.indexOf(fileName) < 0) {
+      if (!newWatchFiles.includes(fileName)) {
         unwatchFile(fileName, watchCallback)
       }
     })
 
     newWatchFiles.forEach(fileName => {
-      if (watchedFiles.indexOf(fileName) < 0) {
+      if (!watchedFiles.includes(fileName)) {
         watchFile(fileName, { persistent: true, interval: 250 }, watchCallback)
       }
     })
@@ -34,3 +34,5 @@ export function watchFiles(rootFileNames: string[], originalServicePath: string,
     watchedFiles = newWatchFiles
   }
 }
+
+export default watchFiles

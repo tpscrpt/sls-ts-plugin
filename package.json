@@ -13,8 +13,8 @@
     "precommit": "npm run test",
     "build": "rimraf dist && tsc",
     "pretest": "npm run lint",
-    "test": "jest",
-    "lint": "tslint -c tslint.json 'src/**/*.ts'"
+    "test": "jest --verbose",
+    "lint": "eslint --ext ts ."
   },
   "repository": {
     "type": "git",
@@ -34,11 +34,16 @@
     "@types/jest": "24.0.12",
     "@types/lodash": "4.14.123",
     "@types/node": "12.6.2",
+    "@typescript-eslint/eslint-plugin": "^2.20.0",
+    "@typescript-eslint/parser": "^2.20.0",
+    "eslint": "^6.8.0",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-jsdoc": "^21.0.0",
+    "eslint-plugin-prefer-arrow": "^1.1.7",
     "jest": "24.5.0",
     "mock-fs": "4.9.0",
     "rimraf": "2.6.3",
     "ts-jest": "24.0.2",
-    "tslint": "5.14.0",
     "typescript": "^3.4.1"
   },
   "dependencies": {

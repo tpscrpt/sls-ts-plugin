@@ -3,7 +3,7 @@ import * as fs from 'fs-extra'
 import * as _ from 'lodash'
 import * as path from 'path'
 
-export function makeDefaultTypescriptConfig() {
+export const makeDefaultTypescriptConfig = (): ts.CompilerOptions => {
   const defaultTypescriptConfig: ts.CompilerOptions = {
     preserveConstEnums: true,
     strictNullChecks: true,
@@ -18,7 +18,7 @@ export function makeDefaultTypescriptConfig() {
   return defaultTypescriptConfig
 }
 
-export function extractFileNames(cwd: string, provider: string, functions?: { [key: string]: Serverless.Function }): string[] {
+export const extractFileNames = (cwd: string, provider: string, functions?: { [key: string]: Serverless.Function }): string[] => {
   // The Google provider will use the entrypoint not from the definition of the
   // handler function, but instead from the package.json:main field, or via a
   // index.js file. This check reads the current package.json in the same way
@@ -70,7 +70,7 @@ export function extractFileNames(cwd: string, provider: string, functions?: { [k
     })
 }
 
-export async function run(fileNames: string[], options: ts.CompilerOptions): Promise<string[]> {
+export const run = (fileNames: string[], options: ts.CompilerOptions): string[] => {
   options.listEmittedFiles = true
   const program = ts.createProgram(fileNames, options)
 
@@ -82,7 +82,7 @@ export async function run(fileNames: string[], options: ts.CompilerOptions): Pro
     if (!diagnostic.file) {
       console.log(diagnostic)
     }
-    const {line, character} = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start)
+    const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start)
     const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n')
     console.log(`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`)
   })
@@ -97,23 +97,23 @@ export async function run(fileNames: string[], options: ts.CompilerOptions): Pro
 /*
  * based on rootFileNames returns list of all related (e.g. imported) source files
  */
-export function getSourceFiles(
+export const getSourceFiles = (
   rootFileNames: string[],
   options: ts.CompilerOptions
-): string[] {
+): string[] => {
   const program = ts.createProgram(rootFileNames, options)
   const programmFiles = program.getSourceFiles()
     .map(file => file.fileName)
     .filter(file => {
-      return file.split(path.sep).indexOf('node_modules') < 0
+      return !file.split(path.sep).includes('node_modules')
     })
   return programmFiles
 }
 
-export function getTypescriptConfig(
+export const getTypescriptConfig = (
   cwd: string,
   logger?: { log: (str: string) => void }
-): ts.CompilerOptions {
+): ts.CompilerOptions => {
   const configFilePath = path.join(cwd, 'tsconfig.json')
 
   if (fs.existsSync(configFilePath)) {
@@ -130,7 +130,7 @@ export function getTypescriptConfig(
     }
 
     if (logger) {
-      logger.log(`Using local tsconfig.json`)
+      logger.log('Using local tsconfig.json')
     }
 
     // disallow overrriding rootDir

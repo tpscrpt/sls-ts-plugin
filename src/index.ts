@@ -4,7 +4,7 @@ import * as _ from 'lodash'
 import * as globby from 'globby'
 
 import * as typescript from './typescript'
-import { watchFiles } from './watchFiles'
+import watchFiles from './watchFiles'
 
 const SERVERLESS_FOLDER = '.serverless'
 const BUILD_FOLDER = '.build'
@@ -22,41 +22,41 @@ export class TypeScriptPlugin {
     this.options = options
 
     this.hooks = {
-      'before:run:run': async () => {
-        await this.compileTs()
+      'before:run:run': async (): Promise<void> => {
+        this.compileTs()
         await this.copyExtras()
         await this.copyDependencies()
       },
-      'before:offline:start': async () => {
-        await this.compileTs()
-        await this.copyExtras()
-        await this.copyDependencies()
-        this.watchAll()
-      },
-      'before:offline:start:init': async () => {
-        await this.compileTs()
+      'before:offline:start': async (): Promise<void> => {
+        this.compileTs()
         await this.copyExtras()
         await this.copyDependencies()
         this.watchAll()
       },
-      'before:package:createDeploymentArtifacts': async () => {
-        await this.compileTs()
+      'before:offline:start:init': async (): Promise<void> => {
+        this.compileTs()
+        await this.copyExtras()
+        await this.copyDependencies()
+        this.watchAll()
+      },
+      'before:package:createDeploymentArtifacts': async (): Promise<void> => {
+        this.compileTs()
         await this.copyExtras()
         await this.copyDependencies(true)
       },
-      'after:package:createDeploymentArtifacts': async () => {
+      'after:package:createDeploymentArtifacts': async (): Promise<void> => {
         await this.cleanup()
       },
-      'before:deploy:function:packageFunction': async () => {
-        await this.compileTs()
+      'before:deploy:function:packageFunction': async (): Promise<void> => {
+        this.compileTs()
         await this.copyExtras()
         await this.copyDependencies(true)
       },
-      'after:deploy:function:packageFunction': async () => {
+      'after:deploy:function:packageFunction': async (): Promise<void> => {
         await this.cleanup()
       },
-      'before:invoke:local:invoke': async () => {
-        const emitedFiles = await this.compileTs()
+      'before:invoke:local:invoke': async (): Promise<void> => {
+        const emitedFiles = this.compileTs()
         await this.copyExtras()
         await this.copyDependencies()
         if (this.isWatching) {
@@ -66,7 +66,7 @@ export class TypeScriptPlugin {
           })
         }
       },
-      'after:invoke:local:invoke': () => {
+      'after:invoke:local:invoke': (): void => {
         if (this.options.watch) {
           this.watchFunction()
           this.serverless.cli.log('Waiting for changes...')
@@ -75,7 +75,7 @@ export class TypeScriptPlugin {
     }
   }
 
-  get functions() {
+  get functions(): { [key: string]: Serverless.Function } {
     const { options } = this
     const { service } = this.serverless
 
@@ -88,7 +88,7 @@ export class TypeScriptPlugin {
     return service.functions
   }
 
-  get rootFileNames() {
+  get rootFileNames(): string[] {
     return typescript.extractFileNames(
       this.originalServicePath,
       this.serverless.service.provider.name,
@@ -96,7 +96,7 @@ export class TypeScriptPlugin {
     )
   }
 
-  prepare() {
+  prepare(): void {
     // exclude serverless-plugin-typescript
     for (const fnName in this.functions) {
       const fn = this.functions[fnName]
@@ -110,7 +110,7 @@ export class TypeScriptPlugin {
     }
   }
 
-  async watchFunction(): Promise<void> {
+  watchFunction(): void {
     if (this.isWatching) {
       return
     }
@@ -118,23 +118,23 @@ export class TypeScriptPlugin {
     this.serverless.cli.log(`Watch function ${this.options.function}...`)
 
     this.isWatching = true
-    watchFiles(this.rootFileNames, this.originalServicePath, () => {
-      this.serverless.pluginManager.spawn('invoke:local')
+    watchFiles(this.rootFileNames, this.originalServicePath, async () => {
+      await this.serverless.pluginManager.spawn('invoke:local')
     })
   }
 
-  async watchAll(): Promise<void> {
+  watchAll(): void {
     if (this.isWatching) {
       return
     }
 
-    this.serverless.cli.log(`Watching typescript files...`)
+    this.serverless.cli.log('Watching typescript files...')
 
     this.isWatching = true
     watchFiles(this.rootFileNames, this.originalServicePath, this.compileTs.bind(this))
   }
 
-  async compileTs(): Promise<string[]> {
+  compileTs(): string[] {
     this.prepare()
     this.serverless.cli.log('Compiling with Typescript...')
 
@@ -152,13 +152,15 @@ export class TypeScriptPlugin {
 
     tsconfig.outDir = BUILD_FOLDER
 
-    const emitedFiles = await typescript.run(this.rootFileNames, tsconfig)
+    const emitedFiles = typescript.run(this.rootFileNames, tsconfig)
     this.serverless.cli.log('Typescript compiled.')
     return emitedFiles
   }
 
-  /** Link or copy extras such as node_modules or package.include definitions */
-  async copyExtras() {
+  /**
+   * Link or copy extras such as node_modules or package.include definitions.
+   */
+  async copyExtras(): Promise<void> {
     const { service } = this.serverless
 
     // include any "extras" from the "include" section
@@ -181,11 +183,11 @@ export class TypeScriptPlugin {
   }
 
   /**
-   * Copy the `node_modules` folder and `package.json` files to the output
-   * directory.
+   * Copy the `node_modules` folder and `package.json` files to the output directory.
+   *
    * @param isPackaging Provided if serverless is packaging the service for deployment
    */
-  async copyDependencies(isPackaging = false) {
+  async copyDependencies(isPackaging = false): Promise<void> {
     const outPkgPath = path.resolve(path.join(BUILD_FOLDER, 'package.json'))
     const outModulesPath = path.resolve(path.join(BUILD_FOLDER, 'node_modules'))
 
