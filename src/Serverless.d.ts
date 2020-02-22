@@ -3,28 +3,27 @@ declare namespace Serverless {
     cli: {
       log(str: string): void
     }
-
     config: {
       servicePath: string
     }
-
-    service: {
-      provider: {
-        name: string
-      }
-      custom: {
-        typeScript: {
-          tsconfigFilePath: string | undefined
-        }
-      },
-      functions: {
-        [key: string]: Serverless.Function
-      }
-      package: Serverless.Package
-      getAllFunctions(): string[]
-    }
-
+    service: Partial<Service>
     pluginManager: PluginManager
+  }
+
+  interface Service {
+    provider: {
+      name: string
+    }
+    custom: {
+      typeScript: {
+        tsconfigFilePath: string | undefined
+      }
+    }
+    functions: {
+      [key: string]: Serverless.Function
+    }
+    package: Serverless.Package
+    getAllFunctions(): string[]
   }
 
   interface Options {

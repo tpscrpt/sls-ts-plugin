@@ -112,7 +112,7 @@ export const getSourceFiles = (
 
 export const getTypescriptConfig = (
   cwd: string,
-  serverless?: Serverless.Instance,
+  serverless?: Partial<Serverless.Instance>,
   logger?: { log: (str: string) => void }
 ): ts.CompilerOptions => {
   let configFilePath = path.join(cwd, 'tsconfig.json')
@@ -138,7 +138,7 @@ export const getTypescriptConfig = (
     }
 
     if (logger) {
-      logger.log(`Using local tsconfig.json "${configFilePath}"`)
+      logger.log(`Using local tsconfig.json at "${configFilePath}"`)
     }
 
     // disallow overrriding rootDir
