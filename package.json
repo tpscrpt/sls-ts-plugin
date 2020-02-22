@@ -51,9 +51,6 @@
     "globby": "^9.2.0",
     "lodash": "^4.17.11"
   },
-  "peerDependencies": {
-    "typescript": ">=2.2.2"
-  },
   "jest": {
     "preset": "ts-jest",
     "testRegex": "(/__tests__/.*|\\.(test|spec))\\.ts$",
