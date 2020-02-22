@@ -4,9 +4,7 @@
   "license": "MIT",
   "main": "dist/src/index.js",
   "files": [
-    "dist",
-    "package.json",
-    "README.md"
+    "dist"
   ],
   "scripts": {
     "prepublishOnly": "npm run build",
