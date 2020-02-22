@@ -30,26 +30,26 @@
     "node": ">=10.0.0"
   },
   "devDependencies": {
-    "@types/fs-extra": "5.0.5",
+    "@types/fs-extra": "8.1.0",
     "@types/jest": "24.0.12",
-    "@types/lodash": "4.14.123",
-    "@types/node": "12.6.2",
+    "@types/lodash": "4.14.149",
+    "@types/node": "13.7.4",
     "@typescript-eslint/eslint-plugin": "^2.20.0",
     "@typescript-eslint/parser": "^2.20.0",
     "eslint": "^6.8.0",
     "eslint-plugin-import": "^2.20.1",
     "eslint-plugin-jsdoc": "^21.0.0",
     "eslint-plugin-prefer-arrow": "^1.1.7",
-    "jest": "24.5.0",
-    "mock-fs": "4.9.0",
-    "rimraf": "2.6.3",
-    "ts-jest": "24.0.2",
+    "jest": "25.1.0",
+    "mock-fs": "4.10.4",
+    "rimraf": "3.0.2",
+    "ts-jest": "25.2.1",
     "typescript": "^3.4.1"
   },
   "dependencies": {
-    "fs-extra": "^7.0.1",
-    "globby": "^9.2.0",
-    "lodash": "^4.17.11"
+    "fs-extra": "^8.1.0",
+    "globby": "^11.0.0",
+    "lodash": "^4.17.15"
   },
   "jest": {
     "preset": "ts-jest",
