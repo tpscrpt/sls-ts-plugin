@@ -1,7 +1,25 @@
 # serverless-plugin-typescript
-[![serverless](http://public.serverless.com/badges/v3.svg)](http://www.serverless.com) [![npm version](https://badge.fury.io/js/serverless-plugin-typescript.svg)](https://badge.fury.io/js/serverless-plugin-typescript) [![Build Status](https://travis-ci.org/prisma/serverless-plugin-typescript.svg?branch=master)](https://travis-ci.org/prisma/serverless-plugin-typescript)
+
+[![sls][sls-image]][sls-url]
+[![npm][npm-image]][npm-url]
+[![build][build-image]][build-url]
+
+[sls-image]: http://public.serverless.com/badges/v3.svg
+[sls-url]: http://www.serverless.com
+[npm-image]: https://badge.fury.io/js/serverless-plugin-typescript.svg
+[npm-url]: https://www.npmjs.com/package/serverless-plugin-typescript
+[build-image]: https://travis-ci.org/prisma/serverless-plugin-typescript.svg?branch=master
+[build-url]: https://travis-ci.org/prisma/serverless-plugin-typescript
 
 Serverless plugin for zero-config Typescript support
+
+## **Important**
+
+### *This is a fork from official [serverless-plugin-typescript]*
+
+All credit goes to Prisma Labs Team for development of this awesome plugin.
+
+[serverless-plugin-typescript]: https://github.com/prisma-labs/serverless-plugin-typescript
 
 ## Features
 
