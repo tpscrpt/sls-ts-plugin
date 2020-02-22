@@ -1,4 +1,4 @@
-import {getTypescriptConfig, makeDefaultTypescriptConfig} from '../src/typescript'
+import { getTypescriptConfig, makeDefaultTypescriptConfig } from '../src/typescript'
 
 describe('getTypescriptConfig', () => {
     it('returns default typescript configuration if the one provided does not exist', () => {
@@ -18,7 +18,7 @@ describe('getTypescriptConfig', () => {
                             tsconfigFilePath: './some-path'
                         }
                     }}
-                } as any),
+                }),
         ).toThrowError('Custom Typescript Config File not found')
     })
 

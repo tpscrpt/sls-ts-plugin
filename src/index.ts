@@ -3,8 +3,9 @@ import * as fs from 'fs-extra'
 import * as _ from 'lodash'
 import * as globby from 'globby'
 
-import * as typescript from './typescript'
-import watchFiles from './watchFiles'
+import { ServerlessTSInstance, ServerlessTSOptions, ServerlessTSFunction } from './serverlessTypes'
+import { extractFileNames, getTypescriptConfig, run } from './typescript'
+import { watchFiles } from './watchFiles'
 
 const SERVERLESS_FOLDER = '.serverless'
 const BUILD_FOLDER = '.build'
@@ -13,11 +14,11 @@ export class TypeScriptPlugin {
   private originalServicePath: string
   private isWatching: boolean
 
-  serverless: Serverless.Instance
-  options: Serverless.Options
+  serverless: ServerlessTSInstance
+  options: ServerlessTSOptions
   hooks: { [key: string]: Function }
 
-  constructor(serverless: Serverless.Instance, options: Serverless.Options) {
+  constructor(serverless: ServerlessTSInstance, options: ServerlessTSOptions) {
     this.serverless = serverless
     this.options = options
 
@@ -75,7 +76,7 @@ export class TypeScriptPlugin {
     }
   }
 
-  get functions(): { [key: string]: Serverless.Function } {
+  get functions(): { [key: string]: ServerlessTSFunction } {
     const { options } = this
     const { service } = this.serverless
 
@@ -89,7 +90,7 @@ export class TypeScriptPlugin {
   }
 
   get rootFileNames(): string[] {
-    return typescript.extractFileNames(
+    return extractFileNames(
       this.originalServicePath,
       this.serverless.service.provider.name,
       this.functions
@@ -145,7 +146,7 @@ export class TypeScriptPlugin {
       this.serverless.config.servicePath = path.join(this.originalServicePath, BUILD_FOLDER)
     }
 
-    const tsconfig = typescript.getTypescriptConfig(
+    const tsconfig = getTypescriptConfig(
       this.originalServicePath,
       this.serverless,
       this.isWatching ? null : this.serverless.cli
@@ -153,7 +154,7 @@ export class TypeScriptPlugin {
 
     tsconfig.outDir = BUILD_FOLDER
 
-    const emitedFiles = typescript.run(this.rootFileNames, tsconfig)
+    const emitedFiles = run(this.rootFileNames, tsconfig)
     this.serverless.cli.log('Typescript compiled.')
     return emitedFiles
   }
@@ -277,5 +278,3 @@ export class TypeScriptPlugin {
       })
   }
 }
-
-module.exports = TypeScriptPlugin

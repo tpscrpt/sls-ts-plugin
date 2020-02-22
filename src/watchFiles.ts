@@ -1,14 +1,16 @@
-import * as typescript from './typescript'
 import { watchFile, unwatchFile, Stats } from 'fs'
 
-const watchFiles = (
+import { ServerlessTSInstance } from './serverlessTypes'
+import { getSourceFiles, getTypescriptConfig } from './typescript'
+
+export const watchFiles = (
   rootFileNames: string[],
   originalServicePath: string,
-  serverless: Serverless.Instance,
+  serverless: ServerlessTSInstance,
   cb: () => Promise<void>
 ): void => {
-  const tsConfig = typescript.getTypescriptConfig(originalServicePath, serverless)
-  let watchedFiles = typescript.getSourceFiles(rootFileNames, tsConfig)
+  const tsConfig = getTypescriptConfig(originalServicePath, serverless)
+  let watchedFiles = getSourceFiles(rootFileNames, tsConfig)
 
   watchedFiles.forEach(fileName => {
     watchFile(fileName, { persistent: true, interval: 250 }, watchCallback)
@@ -23,7 +25,7 @@ const watchFiles = (
     cb()
 
     // use can reference not watched yet file or remove reference to already watched
-    const newWatchFiles = typescript.getSourceFiles(rootFileNames, tsConfig)
+    const newWatchFiles = getSourceFiles(rootFileNames, tsConfig)
     watchedFiles.forEach(fileName => {
       if (!newWatchFiles.includes(fileName)) {
         unwatchFile(fileName, watchCallback)
@@ -39,5 +41,3 @@ const watchFiles = (
     watchedFiles = newWatchFiles
   }
 }
-
-export default watchFiles
