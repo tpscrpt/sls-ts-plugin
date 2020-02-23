@@ -78,7 +78,7 @@
         ],
         "guard-for-in": "off",
         "id-blacklist": [
-            "error",
+            "off",
             "any",
             "Number",
             "number",
