@@ -1,3 +1,5 @@
+export type ServerlessTSFunctionMap = Record<string, ServerlessTSFunction>
+
 export interface ServerlessTSInstance {
   cli: {
     log(str: string): void
@@ -12,15 +14,14 @@ export interface ServerlessTSInstance {
 export interface ServerlessTSService {
   provider: {
     name: string
+    runtime?: string
   }
   custom: {
     typeScript: {
       tsconfigFilePath: string | undefined
     }
   }
-  functions: {
-    [key: string]: ServerlessTSFunction
-  }
+  functions: ServerlessTSFunctionMap
   package: ServerlessTSPackage
   getAllFunctions(): string[]
 }
@@ -34,6 +35,7 @@ export interface ServerlessTSOptions {
 export interface ServerlessTSFunction {
   handler: string
   package: ServerlessTSPackage
+  runtime?: string
 }
 
 export interface ServerlessTSPackage {
