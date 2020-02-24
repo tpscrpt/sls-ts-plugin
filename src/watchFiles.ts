@@ -12,10 +12,6 @@ export const watchFiles = (
   const tsConfig = getTypescriptConfig(originalServicePath, serverless)
   let watchedFiles = getSourceFiles(rootFileNames, tsConfig)
 
-  watchedFiles.forEach(fileName => {
-    watchFile(fileName, { persistent: true, interval: 250 }, watchCallback)
-  })
-
   const watchCallback = (curr: Stats, prev: Stats): void => {
     // Check timestamp
     if (+curr.mtime <= +prev.mtime) {
@@ -40,4 +36,8 @@ export const watchFiles = (
 
     watchedFiles = newWatchFiles
   }
+
+  watchedFiles.forEach(fileName => {
+    watchFile(fileName, { persistent: true, interval: 250 }, watchCallback)
+  })
 }
