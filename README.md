@@ -1,5 +1,7 @@
 # serverless-plugin-typescript
 
+Serverless plugin for zero-config Typescript support
+
 [![sls][sls-image]][sls-url]
 [![npm][npm-image]][npm-url]
 [![build][build-image]][build-url]
@@ -10,8 +12,6 @@
 [npm-url]: https://www.npmjs.com/package/serverless-plugin-typescript
 [build-image]: https://travis-ci.org/prisma/serverless-plugin-typescript.svg?branch=master
 [build-url]: https://travis-ci.org/prisma/serverless-plugin-typescript
-
-Serverless plugin for zero-config Typescript support
 
 ## **Important**
 
