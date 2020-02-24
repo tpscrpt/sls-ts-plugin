@@ -1,8 +1,18 @@
 {
-  "name": "serverless-plugin-typescript",
-  "version": "0.0.0-semantic-release",
+  "name": "@kingdarboja/serverless-plugin-typescript",
+  "version": "1.2.0",
+  "author": {
+    "name": "Prisma Labs",
+    "url": "https://www.prisma.io/"
+  },
+  "maintainers": [
+    {
+      "name": "KingDarBoja",
+      "url": "https://github.com/KingDarBoja/"
+    }
+  ],
   "license": "MIT",
-  "main": "dist/src/index.js",
+  "main": "dist/index.js",
   "files": [
     "dist"
   ],
@@ -16,7 +26,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/prisma/serverless-plugin-typescript.git"
+    "url": "git+https://github.com/KingDarBoja/serverless-plugin-typescript.git"
   },
   "keywords": [
     "serverless",
