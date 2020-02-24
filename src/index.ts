@@ -1,5 +1,5 @@
 import * as path from 'path'
-import * as fs from 'fs-extra'
+import * as fse from 'fs-extra'
 import * as _ from 'lodash'
 import globby from 'globby'
 
@@ -85,7 +85,7 @@ class TypeScriptPlugin {
     } : service.functions
 
     // Ensure we only handle runtimes that support Typescript
-    return _.pickBy(allFunctions, ({runtime}) => {
+    return _.pickBy(allFunctions, ({ runtime }) => {
       const resolvedRuntime = runtime || service.provider.runtime
       // If runtime is not specified on the function or provider, default to previous behaviour
       const regexRuntime = /^node/
@@ -177,14 +177,36 @@ class TypeScriptPlugin {
         const destFileName = path.resolve(path.join(BUILD_FOLDER, filename))
         const dirname = path.dirname(destFileName)
 
-        if (!fs.existsSync(dirname)) {
-          fs.mkdirpSync(dirname)
+        if (!fse.existsSync(dirname)) {
+          fse.mkdirpSync(dirname)
         }
 
-        if (!fs.existsSync(destFileName)) {
-          fs.copySync(path.resolve(filename), path.resolve(path.join(BUILD_FOLDER, filename)))
+        if (!fse.existsSync(destFileName)) {
+          fse.copySync(path.resolve(filename), path.resolve(path.join(BUILD_FOLDER, filename)))
         }
       }
+    }
+  }
+
+  /**
+   * Remove empty and non-empty directory. This requires recursion for non-empty dir.
+   * More info: https://stackoverflow.com/a/20920795/12405220
+   *
+   * @param pathName dir or file path to remove
+   */
+  deleteFolderRecursiveSync(pathName: string): void {
+    if (fse.existsSync(pathName)) {
+      fse.readdirSync(pathName).forEach(file => {
+        const curPath = `${path}${path.sep}${file}`
+        // recurse directory
+        if (fse.lstatSync(curPath).isDirectory()) {
+          this.deleteFolderRecursiveSync(curPath)
+        } else {
+          // delete file
+          fse.unlinkSync(curPath)
+        }
+      })
+      fse.rmdirSync(pathName)
     }
   }
 
@@ -199,11 +221,11 @@ class TypeScriptPlugin {
 
     // copy development dependencies during packaging
     if (isPackaging) {
-      if (fs.existsSync(outModulesPath)) {
-        fs.unlinkSync(outModulesPath)
+      if (fse.existsSync(outModulesPath)) {
+        this.deleteFolderRecursiveSync(outModulesPath)
       }
 
-      fs.copySync(
+      fse.copySync(
         path.resolve('node_modules'),
         path.resolve(path.join(BUILD_FOLDER, 'node_modules')),
         {
@@ -211,13 +233,13 @@ class TypeScriptPlugin {
         }
       )
     } else {
-      if (!fs.existsSync(outModulesPath)) {
+      if (!fse.existsSync(outModulesPath)) {
         await this.linkOrCopy(path.resolve('node_modules'), outModulesPath, 'junction')
       }
     }
 
     // copy/link package.json
-    if (!fs.existsSync(outPkgPath)) {
+    if (!fse.existsSync(outPkgPath)) {
       await this.linkOrCopy(path.resolve('package.json'), outPkgPath, 'file')
     }
   }
@@ -229,7 +251,7 @@ class TypeScriptPlugin {
   async moveArtifacts(): Promise<void> {
     const { service } = this.serverless
 
-    await fs.copy(
+    await fse.copy(
       path.join(this.originalServicePath, BUILD_FOLDER, SERVERLESS_FOLDER),
       path.join(this.originalServicePath, SERVERLESS_FOLDER)
     )
@@ -268,18 +290,18 @@ class TypeScriptPlugin {
     // Restore service path
     this.serverless.config.servicePath = this.originalServicePath
     // Remove temp build folder
-    fs.removeSync(path.join(this.originalServicePath, BUILD_FOLDER))
+    fse.removeSync(path.join(this.originalServicePath, BUILD_FOLDER))
   }
 
   /**
    * Attempt to symlink a given path or directory and copy if it fails with an
    * `EPERM` error.
    */
-  private async linkOrCopy(srcPath: string, dstPath: string, type?: fs.FsSymlinkType): Promise<void> {
-    return fs.symlink(srcPath, dstPath, type)
+  private async linkOrCopy(srcPath: string, dstPath: string, type?: fse.FsSymlinkType): Promise<void> {
+    return fse.symlink(srcPath, dstPath, type)
       .catch(error => {
         if (error.code === 'EPERM' && error.errno === -4048) {
-          return fs.copy(srcPath, dstPath)
+          return fse.copy(srcPath, dstPath)
         }
         throw error
       })
