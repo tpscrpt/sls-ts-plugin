@@ -32,16 +32,16 @@ All credit goes to Prisma Labs Team for development of this awesome plugin.
 ## Install
 
 ```sh
-yarn add --dev serverless-plugin-typescript typescript
+yarn add --dev @kingdarboja/serverless-plugin-typescript typescript
 # or
-npm install -D serverless-plugin-typescript typescript
+npm install -D @kingdarboja/serverless-plugin-typescript typescript
 ```
 
 Add the following plugin to your `serverless.yml`:
 
 ```yaml
 plugins:
-  - serverless-plugin-typescript
+  - '@kingdarboja/serverless-plugin-typescript'
 ```
 
 ## Configure
@@ -126,12 +126,12 @@ The normal Serverless deploy procedure will automatically compile with Typescrip
 The plugin integrates very well with [serverless-offline](https://github.com/dherault/serverless-offline) to
 simulate AWS Lambda and AWS API Gateway locally.
 
-Add the plugins to your `serverless.yml` file and make sure that `serverless-plugin-typescript`
+Add the plugins to your `serverless.yml` file and make sure that `'@kingdarboja/serverless-plugin-typescript'`
 precedes `serverless-offline` as the order is important:
 ```yaml
   plugins:
     ...
-    - serverless-plugin-typescript
+    - '@kingdarboja/serverless-plugin-typescript'
     ...
     - serverless-offline
     ...
@@ -147,7 +147,7 @@ Configure your service the same as mentioned above, but additionally add the `se
 plugin as follows:
 ```yaml
   plugins:
-    - serverless-plugin-typescript
+    - '@kingdarboja/serverless-plugin-typescript'
     - serverless-dynamodb-local
     - serverless-offline
 ```
@@ -196,10 +196,3 @@ module.exports = {
 
 }
 ```
-
-## Help & Community
-
-Join our [Spectrum community](http://spectrum.chat/prisma) if you run into issues or have questions. We love talking to you!
-
-<p align="center"><a href="https://oss.prisma.io"><img src="https://imgur.com/IMU2ERq.png" alt="Prisma" height="170px"></a></p>
-
