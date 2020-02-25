@@ -11,18 +11,24 @@
       "url": "https://github.com/KingDarBoja/"
     }
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "license": "MIT",
   "main": "dist/index.js",
   "files": [
-    "dist"
+    "dist/**/*"
   ],
   "scripts": {
-    "prepublishOnly": "npm run build",
-    "precommit": "npm run test",
-    "build": "rimraf dist && tsc",
     "pretest": "npm run lint",
+    "build": "rimraf dist && tsc",
     "test": "jest --verbose",
-    "lint": "eslint --ext ts ."
+    "lint": "eslint --ext ts .",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test && npm run lint",
+    "preversion" : "npm run lint",
+    "version" : "npm run format && git add -A src",
+    "postversion" : "git push && git push --tags"
   },
   "repository": {
     "type": "git",
