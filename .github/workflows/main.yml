@@ -1,0 +1,19 @@
+name: Test Suite
+on: [push]
+jobs:
+  testing:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install NodeJS 10
+      uses: actions/setup-node@v1
+      with:
+        node-version: 10
+    - name: Install Dependencies
+      run: npm install
+    - name: Run Test Suite
+      run: npm run test
+    - name: Compile TypeScript + Check Errors
+      uses: icrawl/action-tsc@v1
+
