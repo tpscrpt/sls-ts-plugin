@@ -1,15 +1,21 @@
-name: Test Suite
+name: CI
 on: [push]
 jobs:
   testing:
-    runs-on: ubuntu-latest
+    name: Test Matrix
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: [6, 8, 10]
 
     steps:
     - uses: actions/checkout@v2
     - name: Install NodeJS 10
       uses: actions/setup-node@v1
       with:
-        node-version: 10
+        node-version: ${{ matrix.node }}
     - name: Install Dependencies
       run: npm install
     - name: Run Test Suite
