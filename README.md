@@ -4,14 +4,14 @@ Serverless plugin for zero-config Typescript support
 
 [![sls][sls-image]][sls-url]
 [![npm][npm-image]][npm-url]
-<!-- [![build][build-image]][build-url] -->
+[![build][build-image]][build-url]
 
 [sls-image]: http://public.serverless.com/badges/v3.svg
 [sls-url]: http://www.serverless.com
 [npm-image]: https://badge.fury.io/js/%40kingdarboja%2Fserverless-plugin-typescript.svg
 [npm-url]: https://www.npmjs.com/package/@kingdarboja/serverless-plugin-typescript
-<!-- [build-image]: 
-[build-url]: -->
+[build-image]: https://img.shields.io/github/workflow/status/KingDarBoja/serverless-plugin-typescript/CI
+[build-url]: https://github.com/KingDarBoja/serverless-plugin-typescript/actions?query=workflow%3ACI
 
 ## **Important**
 
