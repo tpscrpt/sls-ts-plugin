@@ -8,11 +8,11 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        node: [6, 8, 10]
+        node: [10, 12]
 
     steps:
     - uses: actions/checkout@v2
-    - name: Install NodeJS 10
+    - name: Install NodeJS ${{ matrix.node }}
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node }}
