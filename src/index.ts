@@ -188,29 +188,7 @@ class TypeScriptPlugin {
     }
   }
 
-  /**
-   * Remove empty and non-empty directory. This requires recursion for non-empty dir.
-   * More info: https://stackoverflow.com/a/20920795/12405220
-   *
-   * @param pathName dir or file path to remove
-   */
-  deleteFolderRecursiveSync(pathName: string): void {
-    if (fse.existsSync(pathName)) {
-      fse.readdirSync(pathName).forEach(file => {
-        const curPath = `${path}${path.sep}${file}`
-        // recurse directory
-        if (fse.lstatSync(curPath).isDirectory()) {
-          this.deleteFolderRecursiveSync(curPath)
-        } else {
-          // delete file
-          fse.unlinkSync(curPath)
-        }
-      })
-      fse.rmdirSync(pathName)
-    }
-  }
-
-  /**
+ /**
    * Copy the `node_modules` folder and `package.json` files to the output directory.
    *
    * @param isPackaging Provided if serverless is packaging the service for deployment
@@ -222,7 +200,7 @@ class TypeScriptPlugin {
     // copy development dependencies during packaging
     if (isPackaging) {
       if (fse.existsSync(outModulesPath)) {
-        this.deleteFolderRecursiveSync(outModulesPath)
+        await fse.removeSync(outModulesPath)
       }
 
       fse.copySync(
