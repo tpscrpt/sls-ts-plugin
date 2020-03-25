@@ -188,7 +188,7 @@ class TypeScriptPlugin {
     }
   }
 
- /**
+  /**
    * Copy the `node_modules` folder and `package.json` files to the output directory.
    *
    * @param isPackaging Provided if serverless is packaging the service for deployment
@@ -200,7 +200,7 @@ class TypeScriptPlugin {
     // copy development dependencies during packaging
     if (isPackaging) {
       if (fse.existsSync(outModulesPath)) {
-        await fse.removeSync(outModulesPath)
+        fse.removeSync(outModulesPath)
       }
 
       fse.copySync(
