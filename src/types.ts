@@ -30,6 +30,7 @@ export interface ServerlessTSOptions {
   function?: string;
   watch?: boolean;
   extraServicePath?: string;
+  tsconfigFilePath?: string;
 }
 
 export interface ServerlessTSFunction {

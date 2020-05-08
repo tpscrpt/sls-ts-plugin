@@ -7,9 +7,9 @@ import {
   ServerlessTSInstance,
   ServerlessTSOptions,
   ServerlessTSFunction,
-} from './serverlessTypes';
-import { extractFileNames, getTypescriptConfig, run } from './typescript';
-import { watchFiles } from './watchFiles';
+} from './types';
+import { extractFileNames, getTypescriptConfig, run, getSourceFiles } from './typescript';
+import { unwatchFile, watchFile, Stats } from 'fs-extra';
 
 const SERVERLESS_FOLDER = '.serverless';
 const BUILD_FOLDER = '.build';
@@ -17,6 +17,7 @@ const BUILD_FOLDER = '.build';
 class TypeScriptPlugin {
   private originalServicePath: string;
   private isWatching: boolean;
+  private tsconfigFilePath: string;
 
   serverless: ServerlessTSInstance;
   options: ServerlessTSOptions;
@@ -25,7 +26,10 @@ class TypeScriptPlugin {
   constructor(serverless: ServerlessTSInstance, options: ServerlessTSOptions) {
     this.serverless = serverless;
     this.options = options;
-
+    this.tsconfigFilePath =
+      options.tsconfigFilePath ||
+      serverless.service.custom?.typeScript?.tsconfigFilePath ||
+      'tsconfig.json';
     this.hooks = {
       'before:run:run': async (): Promise<void> => {
         this.compileTs();
@@ -136,7 +140,7 @@ class TypeScriptPlugin {
     this.serverless.cli.log(`Watch function ${this.options.function}...`);
 
     this.isWatching = true;
-    watchFiles(
+    this.watchFiles(
       this.rootFileNames,
       this.originalServicePath,
       this.serverless,
@@ -154,7 +158,7 @@ class TypeScriptPlugin {
     this.serverless.cli.log('Watching typescript files...');
 
     this.isWatching = true;
-    watchFiles(
+    this.watchFiles(
       this.rootFileNames,
       this.originalServicePath,
       this.serverless,
@@ -178,7 +182,7 @@ class TypeScriptPlugin {
 
     const tsconfig = getTypescriptConfig(
       this.originalServicePath,
-      this.serverless,
+      this.tsconfigFilePath,
       this.isWatching ? null : this.serverless.cli,
     );
 
@@ -322,6 +326,46 @@ class TypeScriptPlugin {
       throw error;
     });
   }
+
+  private watchFiles(
+    rootFileNames: string[],
+    originalServicePath: string,
+    serverless: ServerlessTSInstance,
+    cb: () => Promise<void>,
+  ): void {
+    const tsConfig = getTypescriptConfig(originalServicePath, this.tsconfigFilePath);
+    let watchedFiles = getSourceFiles(rootFileNames, tsConfig);
+  
+    const watchCallback = (curr: Stats, prev: Stats): void => {
+      // Check timestamp
+      if (+curr.mtime <= +prev.mtime) {
+        return;
+      }
+  
+      cb();
+  
+      // use can reference not watched yet file or remove reference to already watched
+      const newWatchFiles = getSourceFiles(rootFileNames, tsConfig);
+      watchedFiles.forEach((fileName) => {
+        if (!newWatchFiles.includes(fileName)) {
+          unwatchFile(fileName, watchCallback);
+        }
+      });
+  
+      newWatchFiles.forEach((fileName) => {
+        if (!watchedFiles.includes(fileName)) {
+          watchFile(fileName, { persistent: true, interval: 250 }, watchCallback);
+        }
+      });
+  
+      watchedFiles = newWatchFiles;
+    };
+  
+    watchedFiles.forEach((fileName) => {
+      watchFile(fileName, { persistent: true, interval: 250 }, watchCallback);
+    });
+  };
+  
 }
 
 export = TypeScriptPlugin;

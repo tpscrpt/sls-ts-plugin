@@ -3,7 +3,7 @@ import * as fse from 'fs-extra';
 import * as _ from 'lodash';
 import * as path from 'path';
 
-import { ServerlessTSFunction, ServerlessTSInstance } from './serverlessTypes';
+import { ServerlessTSFunction } from './types';
 
 export const makeDefaultTypescriptConfig = (): ts.CompilerOptions => {
   const defaultTypescriptConfig: ts.CompilerOptions = {
@@ -136,27 +136,10 @@ export const getSourceFiles = (
 
 export const getTypescriptConfig = (
   cwd: string,
-  serverless?: Partial<ServerlessTSInstance>,
+  tsconfigFilePath: string,
   logger?: { log: (str: string) => void },
 ): ts.CompilerOptions => {
-  let configFilePath = path.join(cwd, 'tsconfig.json');
-
-  if (
-    serverless &&
-    serverless.service.custom &&
-    serverless.service.custom.typeScript &&
-    serverless.service.custom.typeScript.tsconfigFilePath
-  ) {
-    configFilePath = path.join(
-      cwd,
-      serverless.service.custom.typeScript.tsconfigFilePath,
-    );
-    if (!fse.existsSync(configFilePath)) {
-      throw new Error(
-        `Custom Typescript Config File not found at "${configFilePath}"`,
-      );
-    }
-  }
+  const configFilePath = path.join(cwd, tsconfigFilePath);
 
   if (fse.existsSync(configFilePath)) {
     const configFileText = fse.readFileSync(configFilePath).toString();
