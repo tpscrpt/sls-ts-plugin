@@ -1,14 +1,13 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import * as _ from 'lodash'
 
 // modern module syntax
-const hello = async (event, context, callback): Promise<any> => {
+const hello = async (event): Promise<object> => {
 
   // dependencies work as expected
   console.log(_.VERSION)
 
   // async/await also works out of the box
-  await new Promise((resolve, reject) => setTimeout(resolve, 500))
+  await new Promise((resolve) => setTimeout(resolve, 500))
 
   const response = {
     statusCode: 200,
@@ -18,7 +17,7 @@ const hello = async (event, context, callback): Promise<any> => {
     }),
   }
 
-  callback(null, response)
+  return response
 }
 
 export default hello
