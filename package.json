@@ -1,5 +1,5 @@
 {
-  "name": "@jeremigendron/serverless-ts-plugin",
+  "name": "@jeremigendron/sls-ts-plugin",
   "version": "1.2.2",
   "author": {
     "name": "Jeremi Gendron",
