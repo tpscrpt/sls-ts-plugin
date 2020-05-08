@@ -123,7 +123,6 @@ class TypeScriptPlugin {
         exclude: [],
         include: [],
       };
-
       // Add plugin to excluded packages or an empty array if exclude is undefined
       fn.package.exclude = _.uniq([
         ...(fn.package.exclude || []),
@@ -198,28 +197,33 @@ class TypeScriptPlugin {
    */
   async copyExtras(): Promise<void> {
     const { service } = this.serverless;
-
     // include any "extras" from the "include" section
-    if (service.package.include && service.package.include.length > 0) {
-      const files = await globby(service.package.include);
+    Object.values(service.functions).forEach((fn) => this.copyIncludes(fn.package.include));
+    this.copyIncludes(service.package.include)
+  }
 
-      for (const filename of files) {
-        const destFileName = path.resolve(path.join(BUILD_FOLDER, filename));
-        const dirname = path.dirname(destFileName);
+  private async copyIncludes(include: string[]) {
+    if (!include) return
 
-        if (!fse.existsSync(dirname)) {
-          fse.mkdirpSync(dirname);
-        }
+    const files = await globby(include);
+    for (const filename of files) {
+      const destFileName = path.resolve(path.join(BUILD_FOLDER, filename));
+      const dirname = path.dirname(destFileName);
 
-        if (!fse.existsSync(destFileName)) {
-          fse.copySync(
-            path.resolve(filename),
-            path.resolve(path.join(BUILD_FOLDER, filename)),
-          );
-        }
+      if (!fse.existsSync(dirname)) {
+        fse.mkdirpSync(dirname);
+      }
+
+      if (!fse.existsSync(destFileName)) {
+        fse.copySync(
+          path.resolve(filename),
+          path.resolve(path.join(BUILD_FOLDER, filename)),
+        );
       }
     }
+
   }
+
 
   /**
    * Copy the `node_modules` folder and `package.json` files to the output directory.

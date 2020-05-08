@@ -125,12 +125,7 @@ export const getSourceFiles = (
   options: ts.CompilerOptions,
 ): string[] => {
   const program = ts.createProgram(rootFileNames, options);
-  const programmFiles = program
-    .getSourceFiles()
-    .map((file) => file.fileName)
-    .filter((file) => {
-      return !file.split(path.sep).includes('node_modules');
-    });
+  const programmFiles = program.getSourceFiles().map((file) => file.fileName);
   return programmFiles;
 };
 
