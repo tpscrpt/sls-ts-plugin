@@ -7,7 +7,7 @@ export interface ServerlessTSInstance {
   config: {
     servicePath: string;
   };
-  service: Partial<ServerlessTSService>;
+  service: ServerlessTSService;
   pluginManager: ServerlessTSPluginManager;
 }
 
@@ -16,9 +16,10 @@ export interface ServerlessTSService {
     name: string;
     runtime?: string;
   };
-  custom: {
-    typeScript: {
-      tsconfigFilePath: string | undefined;
+  custom?: {
+    typeScript?: {
+      tsconfigFilePath?: string;
+      noCopyDeps?: boolean;
     };
   };
   functions: ServerlessTSFunctionMap;
@@ -27,6 +28,7 @@ export interface ServerlessTSService {
 }
 
 export interface ServerlessTSOptions {
+  noCopyDeps: string;
   function?: string;
   watch?: boolean;
   extraServicePath?: string;
