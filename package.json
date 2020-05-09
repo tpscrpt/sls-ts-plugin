@@ -25,9 +25,9 @@
     "test": "jest",
     "lint": "eslint --ext ts . --fix",
     "prepublishOnly": "yarn format && yarn lint && yarn test",
-    "postpublish": "git add -A src/ __tests__/ && git commit -m 'postpublish lint' && git push",
+    "postpublish": "git add -A src/ __tests__/; git commit -m 'postpublish lint'; git push",
     "preversion": "yarn format && yarn lint && yarn test",
-    "postversion": "git add -A src/ __tests__ && git commit -m 'postversion lint' && git push"
+    "postversion": "git add -A src/ __tests__ package.json; git commit -m 'postversion lint'; git push"
   },
   "repository": {
     "type": "git",
