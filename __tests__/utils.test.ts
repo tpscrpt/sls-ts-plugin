@@ -37,7 +37,7 @@ describe("extractFileName", () => {
   });
 
   it("get function filename from serverless service for a google provider", () => {
-    expect(extractFileNames(path.join(process.cwd(), "example"), "google")).toEqual(["handler.ts"]);
+    expect(extractFileNames(path.join(process.cwd(), "examples/simple"), "google")).toEqual(["handler.ts"]);
   });
 });
 

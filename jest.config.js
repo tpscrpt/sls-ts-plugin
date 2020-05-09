@@ -5,5 +5,5 @@ module.exports = {
   collectCoverage: false,
   coverageReporters: ["lcov"],
   collectCoverageFrom: ["src/**/*.{ts,js}", "!**/node_modules/**"],
-  testPathIgnorePatterns: ["__tests__/__fixtures__/"],
+  testPathIgnorePatterns: ["__tests__/__fixtures__/", "examples/"],
 };
