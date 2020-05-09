@@ -10,7 +10,7 @@ Serverless plugin for zero-config Typescript support
 
 [sls-image]: http://public.serverless.com/badges/v3.svg
 [sls-url]: http://www.serverless.com
-[npm-image]: https://badge.fury.io/js/@jeremigendron/sls-ts-plugin.svg
+[npm-image]: https://badge.fury.io/js/%40jeremigendron%2Fsls-ts-plugin.svg
 [npm-url]: https://www.npmjs.com/package/@jeremigendron/sls-ts-plugin
 [build-image]: https://img.shields.io/github/workflow/status/jeremigendron/sls-ts-plugin/CI
 [build-url]: https://github.com/jeremigendron/sls-ts-plugin/actions?query=workflow%3ACI
