@@ -8,6 +8,7 @@ import {
   parseJsonConfigFileContent,
   parseConfigFileTextToJson,
   flattenDiagnosticMessageText,
+  ModuleKind,
 } from "typescript";
 import * as fse from "fs-extra";
 import * as _ from "lodash";
@@ -17,14 +18,31 @@ import { ServerlessTSFunction } from "./types";
 
 export const makeDefaultTypescriptConfig = (): CompilerOptions => {
   const defaultTypescriptConfig: CompilerOptions = {
-    preserveConstEnums: true,
-    strictNullChecks: true,
-    sourceMap: true,
-    allowJs: true,
+    module: ModuleKind.CommonJS,
     target: ScriptTarget.ES5,
-    moduleResolution: ModuleResolutionKind.NodeJs,
-    lib: ["lib.es2015.d.ts"],
+    lib: ["ES2020"],
     rootDir: "./",
+    allowJs: true,
+    checkJs: true,
+    strict: true,
+    noImplicitAny: true,
+    strictNullChecks: true,
+    strictFunctionTypes: true,
+    strictBindCallApply: true,
+    strictPropertyInitialization: true,
+    noImplicitThis: true,
+    alwaysStrict: true,
+    noUnusedLocals: true,
+    noUnusedParameters: true,
+    noImplicitReturns: true,
+    noFallthroughCasesInSwitch: true,
+    moduleResolution: ModuleResolutionKind.NodeJs,
+    esModuleInterop: true,
+    experimentalDecorators: true,
+    emitDecoratorMetadata: true,
+    forceConsistentCasingInFileNames: true,
+    preserveConstEnums: true,
+    sourceMap: true,
   };
 
   return defaultTypescriptConfig;

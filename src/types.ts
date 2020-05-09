@@ -17,7 +17,7 @@ export interface ServerlessTSService {
     runtime?: string;
   };
   custom?: {
-    typeScript?: {
+    typescript?: {
       tsconfigFilePath?: string;
       noCopyDeps?: boolean;
     };
@@ -28,7 +28,7 @@ export interface ServerlessTSService {
 }
 
 export interface ServerlessTSOptions {
-  noCopyDeps: string;
+  noCopyDeps?: string;
   function?: string;
   watch?: boolean;
   extraServicePath?: string;

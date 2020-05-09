@@ -25,10 +25,10 @@ class TypeScriptPlugin {
     this.options = options;
     // if none is provided, we use try to find a valid tsconfig.json in utils.getTypescriptConfig
     // if none can be found, we return a default configuration
-    this.tsconfigFilePath = options.tsconfigFilePath || serverless.service.custom?.typeScript?.tsconfigFilePath;
+    this.tsconfigFilePath = options.tsconfigFilePath || serverless.service.custom?.typescript?.tsconfigFilePath;
     this.originalServicePath = this.serverless.config.servicePath;
 
-    this.noCopyDeps = options.noCopyDeps === "true" || serverless.service.custom?.typeScript?.noCopyDeps || false;
+    this.noCopyDeps = options.noCopyDeps === "true" || serverless.service.custom?.typescript?.noCopyDeps || false;
 
     this.hooks = {
       "before:run:run": async (): Promise<void> => {

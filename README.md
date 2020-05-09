@@ -1,4 +1,6 @@
-# serverless-plugin-typescript
+# sls-ts-plugin
+
+Used by [sls-ts-template](https://github.com/jeremigendron/sls-ts-template)
 
 Serverless plugin for zero-config Typescript support
 
@@ -8,23 +10,15 @@ Serverless plugin for zero-config Typescript support
 
 [sls-image]: http://public.serverless.com/badges/v3.svg
 [sls-url]: http://www.serverless.com
-[npm-image]: https://badge.fury.io/js/%40kingdarboja%2Fserverless-plugin-typescript.svg
-[npm-url]: https://www.npmjs.com/package/@kingdarboja/serverless-plugin-typescript
-[build-image]: https://img.shields.io/github/workflow/status/KingDarBoja/serverless-plugin-typescript/CI
-[build-url]: https://github.com/KingDarBoja/serverless-plugin-typescript/actions?query=workflow%3ACI
-
-## **Important**
-
-### *This is a fork from official [serverless-plugin-typescript]*
-
-All credit goes to Prisma Labs Team for development of this awesome plugin.
-
-[serverless-plugin-typescript]: https://github.com/prisma-labs/serverless-plugin-typescript
+[npm-image]: https://badge.fury.io/js/@jeremigendron/sls-ts-plugin.svg
+[npm-url]: https://www.npmjs.com/package/@jeremigendron/sls-ts-plugin
+[build-image]: https://img.shields.io/github/workflow/status/jeremigendron/sls-ts-plugin/CI
+[build-url]: https://github.com/jeremigendron/sls-ts-plugin/actions?query=workflow%3ACI
 
 ## Features
 
 * Zero-config: Works out of the box without the need to install any other compiler or plugins
-* Supports ES2015 syntax + features (`export`, `import`, `async`, `await`, `Promise`, ...)
+* Supports ES2020 syntax + features (`export`, `import`, `async`, `await`, `Promise`, ...)
 * Supports `sls package`, `sls deploy` and `sls deploy function`
 * Supports `sls invoke local` + `--watch` mode
 * Integrates nicely with [`serverless-offline`](https://github.com/dherault/serverless-offline)
@@ -32,93 +26,92 @@ All credit goes to Prisma Labs Team for development of this awesome plugin.
 ## Install
 
 ```sh
-yarn add --dev @kingdarboja/serverless-plugin-typescript typescript
+yarn add --dev @jeremigendron/sls-ts-plugin
 # or
-npm install -D @kingdarboja/serverless-plugin-typescript typescript
+npm install -D @jeremigendron/sls-ts-plugin
 ```
 
 Add the following plugin to your `serverless.yml`:
 
 ```yaml
 plugins:
-  - '@kingdarboja/serverless-plugin-typescript'
+  - '@jeremigendron/sls-ts-plugin'
 ```
 
 ## Configure
 
-See [example folder](example) for a minimal example.
+See [examples folder](examples) for examples.
 
 ### `tsconfig.json`
 
-The default `tsconfig.json` file used by the plugin looks like this:
+The default tsconfig file used by the plugin looks like this:
 
 ```json
 {
   "compilerOptions": {
-    "preserveConstEnums": true,
-    "strictNullChecks": true,
-    "sourceMap": true,
-    "allowJs": true,
+    "module": "commonjs",
     "target": "es5",
-    "outDir": ".build",
+    "lib": ["ES2020"],
+    "rootDir": "./",
+    "allowJs": true,
+    "checkJs": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
     "moduleResolution": "node",
-    "lib": ["es2015"],
-    "rootDir": "./"
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "forceConsistentCasingInFileNames": true,
+    "preserveConstEnums": true,
+    "sourceMap": true,
   }
 }
 ```
 
+If you have a tsconfig.json file in the root of your project, the plugin will attempt to use it for compilation if you don't specify another one to use. If you don't specify any and it can't find tsconfig.json in the root, it will use the default one above.
+
 > Note 1: The `outDir` and `rootDir` options cannot be overwritten.
 
-> Note 2: Don't confuse the [`tsconfig.json`](tsconfig.json) in this repository with the one mentioned above.
+> Note 2: You can specify a tsconfig to use for compilation with the cli flag `tsconfigFilePath=tsconfig.example.json` or the custom option:
+> ```yaml
+> custom:
+>   typescript:
+>     tsconfigFilePath: tsconfig.example.json
+> ```
 
-### Custom Typescript Configuration
-
-This plugin will use your local `tsconfig.json` if it exists. You can configure a path to a custom Typescript configuration inside your `serverless.yml` using:
-
-    ...
-    plugins:
-      - serverless-plugin-typescript
-    custom:
-      typeScript:
-        tsconfigFilePath: ./tsconfig.build.json
-    ...    
-
+> Note 3: You can signal not to copy the root `node_modules` on every build (reduces build time when you have a monorepo setup) with the cli flag `noCopyDeps=true` or the custom option:
+> ```yaml
+> custom:
+>   typescript:
+>     noCopyDeps: true
+> ```
 
 ### Including extra files
 
 All files from `package/include` will be included in the final build file. See [Exclude/Include](https://serverless.com/framework/docs/providers/aws/guide/packaging#exclude--include)
 
+Files from `function/fnName/package/include` will also be included in the build folder.
+
+If you have a monorepo setup and wish to include your function's `node_modules` in the final build, you will need to specifically include a matching glob in the function's package's include property.
 
 ## Usage
-
-### Google Cloud Functions
-
-When using with Google Cloud Functions via the [serverless-google-cloudfunctions](https://github.com/serverless/serverless-google-cloudfunctions)
-plugin, you simply have to provide a `main` field in your `package.json`:
-
-```js
-{
-  // ...
-  "main": "handler.js",
-  // ..
-}
-```
-
-And this plugin will automatically compile your typescript correctly. Note
-that the field must refer to the compiled file name, namely, ending with a `.js`
-extension.
-
-If a `main` field was not found, then this plugin will use `index.js`. Before
-compilation begins, it will check to see that the file indicated exists with a
-`.ts` extension before actually trying to compile it.
 
 ### Automatic compilation
 
 The normal Serverless deploy procedure will automatically compile with Typescript:
 
 - Create the Serverless project with `serverless create -t aws-nodejs`
-- Install Serverless Typescript as above
+- Install and configure as shown above
 - Deploy with `serverless deploy`
 
 ### Usage with serverless-offline
@@ -126,12 +119,12 @@ The normal Serverless deploy procedure will automatically compile with Typescrip
 The plugin integrates very well with [serverless-offline](https://github.com/dherault/serverless-offline) to
 simulate AWS Lambda and AWS API Gateway locally.
 
-Add the plugins to your `serverless.yml` file and make sure that `'@kingdarboja/serverless-plugin-typescript'`
+Add the plugins to your `serverless.yml` file and make sure that `'@jeremigendron/sls-ts-plugin'`
 precedes `serverless-offline` as the order is important:
 ```yaml
   plugins:
     ...
-    - '@kingdarboja/serverless-plugin-typescript'
+    - '@jeremigendron/sls-ts-plugin'
     ...
     - serverless-offline
     ...
@@ -147,7 +140,7 @@ Configure your service the same as mentioned above, but additionally add the `se
 plugin as follows:
 ```yaml
   plugins:
-    - '@kingdarboja/serverless-plugin-typescript'
+    - '@jeremigendron/sls-ts-plugin'
     - serverless-dynamodb-local
     - serverless-offline
 ```
@@ -174,25 +167,22 @@ Options are:
 - `--path` or `-p` (optional) path to JSON or YAML file holding input data
 - `--data` or `-d` (optional) input data
 
-### Enabling source-maps
+### Google Cloud Functions
 
-You can easily enable support for source-maps (making stacktraces easier to read) by installing and using the following plugin:
+When using with Google Cloud Functions via the [serverless-google-cloudfunctions](https://github.com/serverless/serverless-google-cloudfunctions) plugin, you simply have to provide a `main` field in your `package.json`:
 
-```sh
-yarn add --dev source-map-support
-```
-
-```ts
-// inside of your function
-import 'source-map-support/register'
-```
-
-If you are using webpack (most likely). Add `devtool: 'source-map'` to `webpack.config.js`:
 ```js
-module.exports = {
-  .... snip ....
-  devtool: 'source-map',
-  .... snip ....
-
+{
+  // ...
+  "main": "handler.js",
+  // ..
 }
 ```
+
+And this plugin will automatically compile your typescript correctly. Note
+that the field must refer to the compiled file name, namely, ending with a `.js`
+extension.
+
+If a `main` field was not found, then this plugin will use `index.js`. Before
+compilation begins, it will check to see that the file indicated exists with a
+`.ts` extension before actually trying to compile it.

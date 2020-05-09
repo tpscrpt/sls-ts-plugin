@@ -17,9 +17,9 @@ jobs:
       with:
         node-version: ${{ matrix.node }}
     - name: Install Dependencies
-      run: npm install
+      run: yarn
     - name: Run Test Suite
-      run: npm run test
+      run: yarn test test
     - name: Compile TypeScript + Check Errors
       uses: icrawl/action-tsc@v1
 

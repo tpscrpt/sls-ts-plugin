@@ -1,6 +1,6 @@
 {
   "name": "@jeremigendron/sls-ts-plugin",
-  "version": "1.2.2",
+  "version": "1.2.2-rc1",
   "author": {
     "name": "Jeremi Gendron",
     "url": "https://jeremigendron.info"
@@ -31,7 +31,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/JeremiGendron/serverless-plugin-typescript.git"
+    "url": "git+https://github.com/jeremigendron/sls-ts-plugin.git"
   },
   "keywords": [
     "serverless",
@@ -57,7 +57,6 @@
     "eslint-plugin-prefer-arrow": "^1.1.7",
     "eslint-plugin-prettier": "^3.1.2",
     "jest": "25.1.0",
-    "mock-fs": "4.10.4",
     "prettier": "^2.0.2",
     "ts-jest": "25.2.1",
     "typescript": "^3.8.3"
