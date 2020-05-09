@@ -1,0 +1,3 @@
+[submodule "examples/advanced"]
+	path = examples/advanced
+	url = git@github.com:jeremigendron/sls-ts-template
