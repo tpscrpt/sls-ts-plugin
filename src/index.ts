@@ -1,23 +1,20 @@
-import * as path from 'path';
-import * as fse from 'fs-extra';
-import * as _ from 'lodash';
-import globby from 'globby';
+import * as path from "path";
+import * as fse from "fs-extra";
+import * as _ from "lodash";
+import globby from "globby";
 
-import {
-  ServerlessTSInstance,
-  ServerlessTSOptions,
-  ServerlessTSFunction,
-} from './types';
-import { extractFileNames, getTypescriptConfig, run, getSourceFiles } from './typescript';
-import { unwatchFile, watchFile, Stats } from 'fs-extra';
+import { ServerlessTSInstance, ServerlessTSOptions, ServerlessTSFunction } from "./types";
+import { extractFileNames, getTypescriptConfig, run, getSourceFiles } from "./utils";
+import { unwatchFile, watchFile, Stats } from "fs-extra";
 
-const SERVERLESS_FOLDER = '.serverless';
-const BUILD_FOLDER = '.build';
+const SERVERLESS_FOLDER = ".serverless";
+const BUILD_FOLDER = ".build";
 
 class TypeScriptPlugin {
   private originalServicePath: string;
-  private isWatching: boolean;
-  private tsconfigFilePath: string;
+  private isWatching = false;
+  private tsconfigFilePath?: string;
+  private noCopyDeps: boolean;
 
   serverless: ServerlessTSInstance;
   options: ServerlessTSOptions;
@@ -26,61 +23,62 @@ class TypeScriptPlugin {
   constructor(serverless: ServerlessTSInstance, options: ServerlessTSOptions) {
     this.serverless = serverless;
     this.options = options;
-    this.tsconfigFilePath =
-      options.tsconfigFilePath ||
-      serverless.service.custom?.typeScript?.tsconfigFilePath ||
-      'tsconfig.json';
+    // if none is provided, we use try to find a valid tsconfig.json in utils.getTypescriptConfig
+    // if none can be found, we return a default configuration
+    this.tsconfigFilePath = options.tsconfigFilePath || serverless.service.custom?.typeScript?.tsconfigFilePath;
+    this.originalServicePath = this.serverless.config.servicePath;
+
+    this.noCopyDeps = options.noCopyDeps === "true" || serverless.service.custom?.typeScript?.noCopyDeps || false;
+
     this.hooks = {
-      'before:run:run': async (): Promise<void> => {
+      "before:run:run": async (): Promise<void> => {
         this.compileTs();
         await this.copyExtras();
         await this.copyDependencies();
       },
-      'before:offline:start': async (): Promise<void> => {
-        this.compileTs();
-        await this.copyExtras();
-        await this.copyDependencies();
-        this.watchAll();
-      },
-      'before:offline:start:init': async (): Promise<void> => {
+      "before:offline:start": async (): Promise<void> => {
         this.compileTs();
         await this.copyExtras();
         await this.copyDependencies();
         this.watchAll();
       },
-      'before:package:createDeploymentArtifacts': async (): Promise<void> => {
+      "before:offline:start:init": async (): Promise<void> => {
+        this.compileTs();
+        await this.copyExtras();
+        await this.copyDependencies();
+        this.watchAll();
+      },
+      "before:package:createDeploymentArtifacts": async (): Promise<void> => {
         this.compileTs();
         await this.copyExtras();
         await this.copyDependencies(true);
       },
-      'after:package:createDeploymentArtifacts': async (): Promise<void> => {
+      "after:package:createDeploymentArtifacts": async (): Promise<void> => {
         await this.cleanup();
       },
-      'before:deploy:function:packageFunction': async (): Promise<void> => {
+      "before:deploy:function:packageFunction": async (): Promise<void> => {
         this.compileTs();
         await this.copyExtras();
         await this.copyDependencies(true);
       },
-      'after:deploy:function:packageFunction': async (): Promise<void> => {
+      "after:deploy:function:packageFunction": async (): Promise<void> => {
         await this.cleanup();
       },
-      'before:invoke:local:invoke': async (): Promise<void> => {
+      "before:invoke:local:invoke": async (): Promise<void> => {
         const emitedFiles = this.compileTs();
         await this.copyExtras();
         await this.copyDependencies();
         if (this.isWatching) {
-          emitedFiles.forEach((filename) => {
-            const module = require.resolve(
-              path.resolve(this.originalServicePath, filename),
-            );
+          emitedFiles?.forEach((filename) => {
+            const module = require.resolve(path.resolve(this.originalServicePath, filename));
             delete require.cache[module];
           });
         }
       },
-      'after:invoke:local:invoke': (): void => {
+      "after:invoke:local:invoke": (): void => {
         if (this.options.watch) {
           this.watchFunction();
-          this.serverless.cli.log('Waiting for changes...');
+          this.serverless.cli.log("Waiting for changes...");
         }
       },
     };
@@ -92,7 +90,7 @@ class TypeScriptPlugin {
 
     const allFunctions = options.function
       ? {
-          [options.function]: service.functions[this.options.function],
+          [options.function]: service.functions[options.function],
         }
       : service.functions;
 
@@ -101,18 +99,12 @@ class TypeScriptPlugin {
       const resolvedRuntime = runtime || service.provider.runtime;
       // If runtime is not specified on the function or provider, default to previous behaviour
       const regexRuntime = /^node/;
-      return resolvedRuntime === undefined
-        ? true
-        : regexRuntime.exec(resolvedRuntime);
+      return resolvedRuntime === undefined ? true : regexRuntime.exec(resolvedRuntime);
     });
   }
 
   get rootFileNames(): string[] {
-    return extractFileNames(
-      this.originalServicePath,
-      this.serverless.service.provider.name,
-      this.functions,
-    );
+    return extractFileNames(this.originalServicePath, this.serverless.service.provider.name, this.functions);
   }
 
   prepare(): void {
@@ -124,10 +116,7 @@ class TypeScriptPlugin {
         include: [],
       };
       // Add plugin to excluded packages or an empty array if exclude is undefined
-      fn.package.exclude = _.uniq([
-        ...(fn.package.exclude || []),
-        'node_modules/serverless-plugin-typescript',
-      ]);
+      fn.package.exclude = _.uniq([...(fn.package.exclude || []), "node_modules/serverless-plugin-typescript"]);
     }
   }
 
@@ -139,14 +128,9 @@ class TypeScriptPlugin {
     this.serverless.cli.log(`Watch function ${this.options.function}...`);
 
     this.isWatching = true;
-    this.watchFiles(
-      this.rootFileNames,
-      this.originalServicePath,
-      this.serverless,
-      async () => {
-        await this.serverless.pluginManager.spawn('invoke:local');
-      },
-    );
+    this.watchFiles(this.rootFileNames, this.originalServicePath, async () => {
+      await this.serverless.pluginManager.spawn("invoke:local");
+    });
   }
 
   watchAll(): void {
@@ -154,41 +138,32 @@ class TypeScriptPlugin {
       return;
     }
 
-    this.serverless.cli.log('Watching typescript files...');
+    this.serverless.cli.log("Watching typescript files...");
 
     this.isWatching = true;
-    this.watchFiles(
-      this.rootFileNames,
-      this.originalServicePath,
-      this.serverless,
-      this.compileTs.bind(this),
-    );
+    this.watchFiles(this.rootFileNames, this.originalServicePath, this.compileTs.bind(this));
   }
 
-  compileTs(): string[] {
+  compileTs(): string[] | undefined {
     this.prepare();
-    this.serverless.cli.log('Compiling with Typescript...');
+    this.serverless.cli.log("Compiling with Typescript...");
 
-    if (!this.originalServicePath) {
-      // Save original service path and functions
-      this.originalServicePath = this.serverless.config.servicePath;
-      // Fake service path so that serverless will know what to zip
-      this.serverless.config.servicePath = path.join(
-        this.originalServicePath,
-        BUILD_FOLDER,
-      );
-    }
+    // Fake service path so that serverless will know what to zip
+    this.serverless.config.servicePath = path.join(this.originalServicePath, BUILD_FOLDER);
 
     const tsconfig = getTypescriptConfig(
       this.originalServicePath,
       this.tsconfigFilePath,
-      this.isWatching ? null : this.serverless.cli,
+      this.isWatching ? undefined : this.serverless.cli,
     );
 
     tsconfig.outDir = BUILD_FOLDER;
 
     const emitedFiles = run(this.rootFileNames, tsconfig);
-    this.serverless.cli.log('Typescript compiled.');
+    this.serverless.cli.log("Typescript compiled.");
+    if (!emitedFiles) {
+      this.serverless.cli.log("Warning: no emitted files from TypeScript compilation.");
+    }
     return emitedFiles;
   }
 
@@ -198,12 +173,16 @@ class TypeScriptPlugin {
   async copyExtras(): Promise<void> {
     const { service } = this.serverless;
     // include any "extras" from the "include" section
-    Object.values(service.functions).forEach((fn) => this.copyIncludes(fn.package.include));
-    this.copyIncludes(service.package.include)
+    await Promise.all(
+      Object.values(service.functions).map((fn) => {
+        return this.copyIncludes(fn.package.include);
+      }),
+    );
+    this.copyIncludes(service.package.include);
   }
 
-  private async copyIncludes(include: string[]) {
-    if (!include) return
+  private async copyIncludes(include: string[]): Promise<void> {
+    if (!include) return;
 
     const files = await globby(include);
     for (const filename of files) {
@@ -215,15 +194,10 @@ class TypeScriptPlugin {
       }
 
       if (!fse.existsSync(destFileName)) {
-        fse.copySync(
-          path.resolve(filename),
-          path.resolve(path.join(BUILD_FOLDER, filename)),
-        );
+        fse.copySync(path.resolve(filename), path.resolve(path.join(BUILD_FOLDER, filename)));
       }
     }
-
   }
-
 
   /**
    * Copy the `node_modules` folder and `package.json` files to the output directory.
@@ -231,10 +205,13 @@ class TypeScriptPlugin {
    * @param isPackaging Provided if serverless is packaging the service for deployment
    */
   async copyDependencies(isPackaging = false): Promise<void> {
-    const outPkgPath = path.resolve(path.join(BUILD_FOLDER, 'package.json'));
-    const outModulesPath = path.resolve(
-      path.join(BUILD_FOLDER, 'node_modules'),
-    );
+    if (this.noCopyDeps) {
+      this.serverless.cli.log("Not copying root dependencies for this build.");
+      return;
+    }
+
+    const outPkgPath = path.resolve(path.join(BUILD_FOLDER, "package.json"));
+    const outModulesPath = path.resolve(path.join(BUILD_FOLDER, "node_modules"));
 
     // copy development dependencies during packaging
     if (isPackaging) {
@@ -242,26 +219,18 @@ class TypeScriptPlugin {
         fse.removeSync(outModulesPath);
       }
 
-      fse.copySync(
-        path.resolve('node_modules'),
-        path.resolve(path.join(BUILD_FOLDER, 'node_modules')),
-        {
-          dereference: true,
-        },
-      );
+      fse.copySync(path.resolve("node_modules"), path.resolve(path.join(BUILD_FOLDER, "node_modules")), {
+        dereference: true,
+      });
     } else {
       if (!fse.existsSync(outModulesPath)) {
-        await this.linkOrCopy(
-          path.resolve('node_modules'),
-          outModulesPath,
-          'junction',
-        );
+        await this.linkOrCopy(path.resolve("node_modules"), outModulesPath, "junction");
       }
     }
 
     // copy/link package.json
     if (!fse.existsSync(outPkgPath)) {
-      await this.linkOrCopy(path.resolve('package.json'), outPkgPath, 'file');
+      await this.linkOrCopy(path.resolve("package.json"), outPkgPath, "file");
     }
   }
 
@@ -279,31 +248,35 @@ class TypeScriptPlugin {
 
     if (this.options.function) {
       const fn = service.functions[this.options.function];
-      fn.package.artifact = path.join(
-        this.originalServicePath,
-        SERVERLESS_FOLDER,
-        path.basename(fn.package.artifact),
-      );
+      const artifact = fn.package.artifact;
+      if (artifact) {
+        fn.package.artifact = path.join(this.originalServicePath, SERVERLESS_FOLDER, path.basename(artifact));
+      }
       return;
     }
 
     if (service.package.individually) {
       const functionNames = Object.keys(this.functions);
       functionNames.forEach((name) => {
-        service.functions[name].package.artifact = path.join(
-          this.originalServicePath,
-          SERVERLESS_FOLDER,
-          path.basename(service.functions[name].package.artifact),
-        );
+        const artifact = service.functions[name].package.artifact;
+        if (artifact) {
+          service.functions[name].package.artifact = path.join(
+            this.originalServicePath,
+            SERVERLESS_FOLDER,
+            path.basename(artifact),
+          );
+        }
       });
       return;
     }
 
-    service.package.artifact = path.join(
-      this.originalServicePath,
-      SERVERLESS_FOLDER,
-      path.basename(service.package.artifact),
-    );
+    if (service.package.artifact) {
+      service.package.artifact = path.join(
+        this.originalServicePath,
+        SERVERLESS_FOLDER,
+        path.basename(service.package.artifact),
+      );
+    }
   }
 
   async cleanup(): Promise<void> {
@@ -318,36 +291,27 @@ class TypeScriptPlugin {
    * Attempt to symlink a given path or directory and copy if it fails with an
    * `EPERM` error.
    */
-  private async linkOrCopy(
-    srcPath: string,
-    dstPath: string,
-    type?: fse.FsSymlinkType,
-  ): Promise<void> {
+  private async linkOrCopy(srcPath: string, dstPath: string, type?: fse.FsSymlinkType): Promise<void> {
     return fse.symlink(srcPath, dstPath, type).catch((error) => {
-      if (error.code === 'EPERM' && error.errno === -4048) {
+      if (error.code === "EPERM" && error.errno === -4048) {
         return fse.copy(srcPath, dstPath);
       }
       throw error;
     });
   }
 
-  private watchFiles(
-    rootFileNames: string[],
-    originalServicePath: string,
-    serverless: ServerlessTSInstance,
-    cb: () => Promise<void>,
-  ): void {
+  private watchFiles(rootFileNames: string[], originalServicePath: string, cb: Function): void {
     const tsConfig = getTypescriptConfig(originalServicePath, this.tsconfigFilePath);
     let watchedFiles = getSourceFiles(rootFileNames, tsConfig);
-  
+
     const watchCallback = (curr: Stats, prev: Stats): void => {
       // Check timestamp
       if (+curr.mtime <= +prev.mtime) {
         return;
       }
-  
+
       cb();
-  
+
       // use can reference not watched yet file or remove reference to already watched
       const newWatchFiles = getSourceFiles(rootFileNames, tsConfig);
       watchedFiles.forEach((fileName) => {
@@ -355,21 +319,20 @@ class TypeScriptPlugin {
           unwatchFile(fileName, watchCallback);
         }
       });
-  
+
       newWatchFiles.forEach((fileName) => {
         if (!watchedFiles.includes(fileName)) {
           watchFile(fileName, { persistent: true, interval: 250 }, watchCallback);
         }
       });
-  
+
       watchedFiles = newWatchFiles;
     };
-  
+
     watchedFiles.forEach((fileName) => {
       watchFile(fileName, { persistent: true, interval: 250 }, watchCallback);
     });
-  };
-  
+  }
 }
 
 export = TypeScriptPlugin;
